@@ -129,7 +129,7 @@ def message(d):
         article = "l'" if nom_jour == "Octidi" else "le "
         numero = "1er" if jour == 0 else str(jour + 1)
         return (f"Aujourd'hui, nous sommes {article}{nom_jour} "
-                f"{numero} {MOIS[mois]} {annee}, jour {nom}.")
+                f"{numero} {MOIS[mois]} de l'{annee}, jour {nom}.")
     k = j - 360
     return (f"Aujourd'hui, nous sommes le {ordinal(k + 1)} jour complémentaire "
             f"de l'{annee}, jour {COMPLEMENTAIRES[k]}.")
@@ -152,4 +152,3 @@ if __name__ == "__main__":
     print(texte)
     if "--publier" in sys.argv:
         publier(texte)
- 
