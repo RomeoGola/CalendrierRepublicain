@@ -1,0 +1,31 @@
+name: Date républicaine quotidienne
+
+on:
+  schedule:
+    # 6 h 05 UTC = 7 h 05 (hiver) ou 8 h 05 (été) à Paris
+    - cron: "5 6 * * *"
+  workflow_dispatch: {}   # permet un lancement manuel pour tester
+
+permissions:
+  contents: read
+  actions: write   # pour le keepalive ci-dessous
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install tweepy
+      - run: python date_republicaine.py --publier
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      # Évite que GitHub désactive le workflow après 60 jours sans commit
+      - run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/publier.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
