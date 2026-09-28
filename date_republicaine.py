@@ -1,7 +1,7 @@
 """Calcul de la date du calendrier républicain et publication sur X."""
 import os
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 # Jour 1 vendémiaire an I = 22 septembre 1792
@@ -44,39 +44,35 @@ def est_sextile(an):
     return an % 4 == 0 and (an % 100 != 0 or an % 400 == 0)
 
 
-# Périodes où la France était en république (dates de début et de fin incluses).
-# Premier Empire, Restauration, monarchie de Juillet et Second Empire en sont
-# exclus. Vichy n'interrompt pas la République : selon l'ordonnance du
-# 9 août 1944, la République n'a jamais cessé d'exister (France libre).
+# Périodes républicaines (début inclus, fin exclue). Le compte des années de
+# République se fait en jours : jours écoulés sous la République divisés par la
+# durée moyenne d'une année (365,2425 jours). Vichy n'interrompt pas la
+# République : selon l'ordonnance du 9 août 1944, elle n'a jamais cessé d'exister.
 REPUBLIQUES = [
-    (date(1792, 9, 22), date(1804, 5, 17)),   # Ire République
-    (date(1848, 2, 24), date(1852, 12, 1)),   # IIe République
-    (date(1870, 9, 4), date(9999, 12, 31)),   # IIIe République et suivantes
+    # Ire : décret datant les actes de « l'an I de la République »
+    #       -> sénatus-consulte du 28 floréal an XII
+    (date(1792, 9, 22), date(1804, 5, 18)),
+    # IIe : proclamation par le gouvernement provisoire
+    #       -> promulgation du rétablissement de l'Empire
+    (date(1848, 2, 24), date(1852, 12, 2)),
+    # IIIe République et suivantes
+    (date(1870, 9, 4), None),
 ]
+ANNEE_MOYENNE = 365.2425
 
 
-def debut_annee(an):
-    """Date grégorienne du 1er vendémiaire de l'an donné."""
-    d = EPOQUE
-    for a in range(1, an):
-        d += timedelta(days=366 if est_sextile(a) else 365)
-    return d
+def jours_de_republique(d):
+    """Nombre de jours passés sous la République avant le jour d."""
+    total = 0
+    for debut, fin in REPUBLIQUES:
+        fin = d if fin is None else min(fin, d)
+        total += max(0, (fin - debut).days)
+    return total
 
 
-def an_republicain(an):
-    """Rang de l'année en ne comptant que les années ayant connu la République.
-
-    Une année est comptée si au moins un de ses jours tombe sous un régime
-    républicain ; les années entièrement passées sous un empire, une monarchie
-    ou le régime de Vichy sont ignorées.
-    """
-    rang = 0
-    for a in range(1, an + 1):
-        debut = debut_annee(a)
-        fin = debut_annee(a + 1) - timedelta(days=1)
-        if any(debut <= f and d <= fin for d, f in REPUBLIQUES):
-            rang += 1
-    return rang
+def annee_de_republique(d):
+    """Rang de l'année de République en cours (1 = première année)."""
+    return int(jours_de_republique(d) // ANNEE_MOYENNE) + 1
 
 
 def romain(n):
@@ -120,8 +116,8 @@ def ordinal(n):
 
 def message(d):
     an, j = date_republicaine(d)
-    rang = an_republicain(an)
-    annee = f"an {romain(rang)} ({rang})"
+    rang = annee_de_republique(d)
+    annee = f"an {an} ({romain(an)}), {rang}e année de la République"
     if j < 360:
         mois, jour = divmod(j, 30)
         nom = avec_de(NOMS[mois][jour])
