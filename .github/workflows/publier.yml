@@ -2,12 +2,13 @@ name: Date républicaine quotidienne
 
 on:
   schedule:
-    # Plusieurs essais : GitHub peut retarder ou sauter un déclenchement.
+    # GitHub lance les workflows programmés avec 5 à 7 h de retard :
+    # on vise la nuit pour une publication vers 8-9 h à Paris.
     # Le premier qui passe publie, les suivants voient que c'est déjà fait.
-    - cron: "5 5 * * *"    # 7 h 05 (été) / 6 h 05 (hiver) à Paris
-    - cron: "37 5 * * *"
-    - cron: "13 6 * * *"
-    - cron: "47 7 * * *"
+    - cron: "7 0 * * *"    # 2 h 07 (été) / 1 h 07 (hiver) à Paris
+    - cron: "41 0 * * *"
+    - cron: "23 1 * * *"
+    - cron: "5 5 * * *"    # filet de sécurité
   workflow_dispatch: {}   # lancement manuel (publie même si déjà fait)
 
 permissions:
