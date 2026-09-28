@@ -1,7 +1,7 @@
 """Calcul de la date du calendrier républicain et publication sur X."""
 import os
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 # Jour 1 vendémiaire an I = 22 septembre 1792
@@ -71,8 +71,14 @@ def jours_de_republique(d):
 
 
 def annee_de_republique(d):
-    """Rang de l'année de République en cours (1 = première année)."""
-    return int(jours_de_republique(d) // ANNEE_MOYENNE) + 1
+    """Rang de l'année de République en cours (1 = première année).
+
+    Le compte est arrêté au 1er vendémiaire : le rang ne change qu'au
+    Nouvel An républicain.
+    """
+    _, j = date_republicaine(d)
+    nouvel_an = d - timedelta(days=j)
+    return int(jours_de_republique(nouvel_an) // ANNEE_MOYENNE) + 1
 
 
 def romain(n):
